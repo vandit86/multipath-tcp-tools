@@ -67,7 +67,8 @@ int main(int argc, char *argv[]){
 					&link_layer_offset,
 					pktdata,
 					datalink_type);
-      
+       // std::cout << "connId" << connection_id << std::endl ; 
+      connection_id = 0 ; // VAD: nedded to detect subflow 
       if (connection_id >= 0){
 	// process the packet with the proper connection.
 	process_packet(&conn_data,
@@ -78,6 +79,8 @@ int main(int argc, char *argv[]){
 		       timestamp);
       }
     }
+
+    display_long_connections (&conn_data);     
   }
   pcap_close(descr);
   //  END PASS 1

@@ -27,7 +27,7 @@
 
 /// my vars
 
-#define MP_PROTOCOL_VER_0 0
+#define MP_PROTOCOL_VER_0 1
 #define MP_PROTOCOL_VER_1 1
 #define MP_PROTOCOL_NO_VER 99
 #define MPTCP_NO_KEY 0

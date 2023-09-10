@@ -395,8 +395,9 @@ uint32_t get_ipv4_mp_join_token(const u_char* packet, const int ip_offset){
       mptcp_option_header = (struct mptcp_opt*)(tcp_option_header);
       bytes_processed += tcp_option_header->length;
       if (mptcp_option_header->subtype == MP_JOIN){
-	mptcp_join_header = (struct mp_join_opt_v0_syn*)(mptcp_option_header);
-	return ntohl(mptcp_join_header->token);
+	    mptcp_join_header = (struct mp_join_opt_v0_syn*)(mptcp_option_header);
+       	    
+        return ntohl(mptcp_join_header->token);
       }
     } else {
       bytes_processed += tcp_option_header->length;

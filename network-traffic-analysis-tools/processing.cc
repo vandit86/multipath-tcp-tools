@@ -53,32 +53,45 @@ void ipv4_subflow_information(struct connection_data_struct * conn_data,
       bool is_done = false;
       int match_index = -1;
       for (unsigned int i = 0; !is_done && i < conn_data->mptcp_connections.size(); i++){
-	if (conn_data->mptcp_connections[i].src_token_matches(token)){
-	  ft.reverse();
-	  match_index = i;
-	  is_done = true;
-	} else if (conn_data->mptcp_connections[i].dst_token_matches(token)){
-	  match_index = i;
-	  is_done = true;
-	}
+	    if (conn_data->mptcp_connections[i].src_token_matches(token)){
+	      ft.reverse();
+	      match_index = i;
+	      is_done = true;
+	    } else if (conn_data->mptcp_connections[i].dst_token_matches(token)){
+	      match_index = i;
+	      is_done = true;
+	    }
       }
+      
       if (conn_data->mp_capable_subflows.exists(ft)){
-	cerr << "Warning: MP_JOIN reusing four tuple of previous MP_CAPABLE: ";
-	ft.display_err();
+	        cerr << "Warning: MP_JOIN reusing four tuple of previous MP_CAPABLE: ";
+	        ft.display_err();
       } else if(match_index >= 0 &&
 		conn_data->mp_join_subflows.exists(ft) &&
 		conn_data->subflows.exists(ft)){
-	int stored_index = conn_data->subflows.find(ft)->second;
-	map<int, int>::iterator it = conn_data->subflow_to_connection_id.find(stored_index);
-	if (it != conn_data->subflow_to_connection_id.end() &&
-	    match_index != it->second){
-	  cerr << match_index << " " << it->second << " Warning: MP_JOIN reusing four tuple of previous MP_JOIN: ";
-	  ft.display_err();
-	}
+	        int stored_index = conn_data->subflows.find(ft)->second;
+	        map<int, int>::iterator it = conn_data->subflow_to_connection_id.find(stored_index);
+	        
+            if (it != conn_data->subflow_to_connection_id.end() && match_index != it->second){
+	            cerr << match_index << " " << it->second << " Warning: MP_JOIN reusing four tuple of previous MP_JOIN: ";
+	            ft.display_err();
+	        }
       }
-      conn_data->mp_join_subflows.insert(ft);
+        
+      if (conn_data->mp_join_subflows.insert(ft)){
+            std::cout << "MP_JOIN_SUBFLOW_INSERT :" << std::endl; 
+            ft.display();
+        }
+        
+    // conn_data->mptcp_connections.size()
+        //display_connections (&(conn_data->mptcp_connections));
+       // display_long_connections (conn_data); 
+         
     }
-    conn_data->subflows.insert(ft);	
+    if (conn_data->subflows.insert(ft)){
+        std::cout << "SUBFLOWs_INSERT :" << std::endl; 
+        ft.display();    
+    }	
   }
 }
 
@@ -113,6 +126,8 @@ void ipv4_mp_capable_information(struct connection_data_struct * conn_data, int 
     ft.display_err();
   }
   
+    //ft.display();
+    std::cout << "subflow size : " << conn_data->mp_capable_subflows.size() << std::endl ;  
   if (is_ipv4_tcp_syn(pkt_data, *link_layer_offset)){
     if (!is_ipv4_tcp_ack(pkt_data, *link_layer_offset)){
       // plain SYN case, insert is true if we store the ft
@@ -214,8 +229,10 @@ int get_ipv4_connection_id(struct connection_data_struct * conn_data,
     if (it != conn_data->subflows.end()){
       sub_index = it->second;
     }
+    //std::cout << "Subflow index" << sub_index<<  std::endl; 
     map<int,int>::iterator map_it = conn_data->subflow_to_connection_id.find(sub_index);
     if (map_it != conn_data->subflow_to_connection_id.end()){
+    //std::cout << "Already have mapping" << std::endl;  
       return map_it->second; // already have a mapping
     }
     if (contains_ipv4_mptcp_option(pkt_data, *link_layer_offset, MP_CAPABLE)){
@@ -277,6 +294,7 @@ void ipv4_process_packet(struct connection_data_struct * conn_data,
   
   if (get_jflag() &&
       contains_ipv4_mptcp_option(pkt_data, *link_layer_offset, MP_JOIN)){
+         
 
     conn_data->mptcp_plotters[index]->plot_mp_join(
                                    &conn_data->mptcp_connections[index],
